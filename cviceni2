@@ -1,0 +1,18 @@
+SET cestaLog TO $'''C:\\Users\\Student\\Desktop\\log soubory.xlsx'''
+Folder.GetFiles Folder: $'''C:\\Users\\Student\\Downloads\\paut_data\\paut_data''' FileFilter: $'''*''' IncludeSubfolders: False FailOnAccessDenied: True SortBy1: Folder.SortBy.NoSort SortDescending1: False SortBy2: Folder.SortBy.NoSort SortDescending2: False SortBy3: Folder.SortBy.NoSort SortDescending3: False Files=> Files
+DateTime.GetCurrentDateTime.Local DateTimeFormat: DateTime.DateTimeFormat.DateAndTime CurrentDateTime=> CurrentDateTime
+Excel.LaunchExcel.LaunchAndOpenUnderExistingProcess Path: cestaLog Visible: True ReadOnly: False Instance=> ExcelInstance
+**REGION Zapis poctus souboru
+Excel.GetFirstFreeColumnRow Instance: ExcelInstance FirstFreeColumn=> FirstFreeColumn FirstFreeRow=> FirstFreeRow
+Excel.WriteToExcel.WriteCell Instance: ExcelInstance Value: CurrentDateTime Column: 1 Row: FirstFreeRow
+Excel.WriteToExcel.WriteCell Instance: ExcelInstance Value: Files.Count Column: 2 Row: FirstFreeRow
+**ENDREGION
+**REGION Vypis nazvu souboru
+Excel.GetAllWorksheets Instance: ExcelInstance Worksheets=> SheetNames
+Excel.AddWorksheet Instance: ExcelInstance Name: $'''List%SheetNames.Count + 1%''' WorksheetPosition: Excel.WorksheetPosition.Last
+LOOP FOREACH CurrentItem IN Files
+    Excel.GetFirstFreeColumnRow Instance: ExcelInstance FirstFreeColumn=> FirstFreeColumn2 FirstFreeRow=> FirstFreeRow2
+    Excel.WriteToExcel.WriteCell Instance: ExcelInstance Value: CurrentItem Column: 1 Row: FirstFreeRow2
+END
+**ENDREGION
+Excel.CloseExcel.CloseAndSave Instance: ExcelInstance
