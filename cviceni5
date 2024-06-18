@@ -1,0 +1,24 @@
+Folder.GetFiles Folder: $'''C:\\Users\\Student\\Downloads\\paut_data\\paut_data''' FileFilter: $'''*''' IncludeSubfolders: False FailOnAccessDenied: True SortBy1: Folder.SortBy.NoSort SortDescending1: False SortBy2: Folder.SortBy.NoSort SortDescending2: False SortBy3: Folder.SortBy.NoSort SortDescending3: False Files=> Files
+LOOP FOREACH CurrentItem IN Files
+    IF (CurrentItem.Extension = '.xlsx' OR CurrentItem.Extension = '.xlsm') = $'''TRUE''' THEN
+        BLOCK Excel
+ON BLOCK ERROR
+GOTO 'chyba Excel'
+END
+            Excel.LaunchExcel.LaunchAndOpenUnderExistingProcess Path: CurrentItem Visible: True ReadOnly: False Instance=> ExcelInstance
+            ON ERROR
+                GOTO 'chyba spusteni Excel'
+            END
+            Excel.GetFirstFreeColumnRow Instance: ExcelInstance FirstFreeColumn=> FirstFreeColumn FirstFreeRow=> FirstFreeRow
+            Display.ShowMessageDialog.ShowMessage Message: $'''ŘÁDEK: %FirstFreeRow%
+SLOUPEC: %FirstFreeColumn%''' Icon: Display.Icon.None Buttons: Display.Buttons.OK DefaultButton: Display.DefaultButton.Button1 IsTopMost: False ButtonPressed=> ButtonPressed
+        END
+    END
+END
+EXIT Code: 0
+LABEL 'chyba spusteni Excel'
+Display.ShowMessageDialog.ShowMessage Message: $'''Excel se nepodařilo spustit''' Icon: Display.Icon.None Buttons: Display.Buttons.OK DefaultButton: Display.DefaultButton.Button1 IsTopMost: False ButtonPressed=> ButtonPressed2
+EXIT Code: 0
+LABEL 'chyba Excel'
+Display.ShowMessageDialog.ShowMessage Message: $'''Chyba s Excel''' Icon: Display.Icon.None Buttons: Display.Buttons.OK DefaultButton: Display.DefaultButton.Button1 IsTopMost: False ButtonPressed=> ButtonPressed2
+EXIT Code: 0
