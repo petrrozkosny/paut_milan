@@ -1,0 +1,47 @@
+SET slozka TO $'''C:\\Users\\Student\\Downloads\\paut_data\\paut_data\\'''
+@@statistics_Input_Text: '1'
+@@statistics_Action_Submit: '2'
+Display.ShowCustomDialog CardTemplateJson: '''{
+  \"type\": \"AdaptiveCard\",
+  \"version\": \"1.4\",
+  \"id\": \"AdaptiveCard\",
+  \"body\": [
+    {
+      \"type\": \"Input.Text\",
+      \"id\": \"Text input\",
+      \"isRequired\": true,
+      \"label\": \"${Text_input_Label}\"
+    }
+  ],
+  \"actions\": [
+    {
+      \"type\": \"Action.Submit\",
+      \"id\": \"Submit\",
+      \"title\": \"${Submit_Title}\"
+    },
+    {
+      \"type\": \"Action.Submit\",
+      \"id\": \"Submit2\",
+      \"title\": \"${Submit2_Title}\"
+    }
+  ]
+}''' CustomFormData=> CustomFormData ButtonPressed=> ButtonPressed @Text_input_Label: $'''Název souboru''' @Submit_Title: $'''Ok''' @Submit2_Title: $'''Zrušit'''
+SET pocetSouboru TO 0
+IF ButtonPressed = $'''Submit''' THEN
+    Folder.GetFiles Folder: slozka FileFilter: $'''*''' IncludeSubfolders: False FailOnAccessDenied: True SortBy1: Folder.SortBy.NoSort SortDescending1: False SortBy2: Folder.SortBy.NoSort SortDescending2: False SortBy3: Folder.SortBy.NoSort SortDescending3: False Files=> Files
+    LOOP FOREACH CurrentItem IN Files
+        IF CurrentItem.Name = CustomFormData['Text input'] THEN
+            SET pocetSouboru TO 1
+            Pdf.ExtractTablesFromPDF.ExtractTables PDFFile: CurrentItem MultiPageTables: True SetFirstRowAsHeader: True ExtractedPDFTables=> ExtractedPDFTables
+            SET radkySloupce TO ExtractedPDFTables[0].DataTable
+            EXIT LOOP
+        END
+    END
+    IF pocetSouboru = 1 THEN
+        Display.ShowMessageDialog.ShowMessage Message: $'''Soubor existuje''' Icon: Display.Icon.None Buttons: Display.Buttons.OK DefaultButton: Display.DefaultButton.Button1 IsTopMost: False ButtonPressed=> ButtonPressed2
+        Display.ShowMessageDialog.ShowMessage Message: $'''%radkySloupce.RowsCount%,
+ %radkySloupce.Columns.Count%''' Icon: Display.Icon.None Buttons: Display.Buttons.OK DefaultButton: Display.DefaultButton.Button1 IsTopMost: False ButtonPressed=> ButtonPressed3
+    ELSE
+        Display.ShowMessageDialog.ShowMessage Message: $'''Soubor neexistuje''' Icon: Display.Icon.None Buttons: Display.Buttons.OK DefaultButton: Display.DefaultButton.Button1 IsTopMost: False ButtonPressed=> ButtonPressed2
+    END
+END
