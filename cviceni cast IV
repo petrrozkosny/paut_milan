@@ -1,0 +1,39 @@
+Folder.GetFiles Folder: $'''C:\\Users\\Student\\Downloads\\paut_data\\paut_data''' FileFilter: $'''*''' IncludeSubfolders: False FailOnAccessDenied: True SortBy1: Folder.SortBy.NoSort SortDescending1: False SortBy2: Folder.SortBy.NoSort SortDescending2: False SortBy3: Folder.SortBy.NoSort SortDescending3: False Files=> Files
+SET pocetSouboru TO 0
+LOOP FOREACH CurrentItem IN Files
+    IF CurrentItem.Extension = $'''.pdf''' THEN
+        File.Move Files: CurrentItem Destination: $'''C:\\Users\\Student\\Downloads\\paut_data\\paut_data\\pdf soubory''' IfFileExists: File.IfExists.DoNothing MovedFiles=> MovedFiles
+        Variables.IncreaseVariable Value: pocetSouboru IncrementValue: 1
+    END
+END
+Display.ShowMessageDialog.ShowMessage Message: $'''Počet přesunutých PDF souborů: %pocetSouboru%''' Icon: Display.Icon.None Buttons: Display.Buttons.OK DefaultButton: Display.DefaultButton.Button1 IsTopMost: False ButtonPressed=> ButtonPressed
+Excel.LaunchExcel.LaunchAndOpenUnderExistingProcess Path: $'''C:\\Users\\Student\\Downloads\\paut_data\\paut_data\\akcie.xlsx''' Visible: True ReadOnly: False Instance=> ExcelInstance
+ON ERROR
+    GOTO chybaExcel
+END
+Excel.GetFirstFreeColumnRow Instance: ExcelInstance FirstFreeColumn=> FirstFreeColumn FirstFreeRow=> FirstFreeRow
+WebAutomation.LaunchEdge.LaunchEdge Url: $'''https://www.google.cz''' WindowState: WebAutomation.BrowserWindowState.Maximized ClearCache: False ClearCookies: False WaitForPageToLoadTimeout: 60 Timeout: 60 PiPUserDataFolderMode: WebAutomation.PiPUserDataFolderModeEnum.AutomaticProfile BrowserInstance=> Browser
+LOOP LoopIndex FROM 2 TO FirstFreeRow - 1 STEP 1
+    Excel.ReadFromExcel.ReadCell Instance: ExcelInstance StartColumn: 1 StartRow: LoopIndex ReadAsText: False CellValue=> ExcelData
+    WebAutomation.GoToWebPage.GoToWebPage BrowserInstance: Browser Url: ExcelData WaitForPageToLoadTimeout: 60
+    WebAutomation.GetDetailsOfWebPage BrowserInstance: Browser DetailsType: WebAutomation.DetailsType.Title Details=> WebPageProperty
+    DateTime.GetCurrentDateTime.Local DateTimeFormat: DateTime.DateTimeFormat.DateAndTime CurrentDateTime=> CurrentDateTime
+    IF Contains(WebPageProperty, 404, False) THEN
+        NEXT LOOP
+    END
+    BLOCK chybaExcel
+ON BLOCK ERROR
+
+END
+        Excel.WriteToExcel.WriteCell Instance: ExcelInstance Value: WebPageProperty Column: 2 Row: LoopIndex
+        Excel.WriteToExcel.WriteCell Instance: ExcelInstance Value: CurrentDateTime Column: 3 Row: LoopIndex
+    END
+END
+Excel.CloseExcel.CloseAndSave Instance: ExcelInstance
+WebAutomation.CloseWebBrowser BrowserInstance: Browser
+ON ERROR
+
+END
+EXIT Code: 0
+LABEL chybaExcel
+EXIT Code: 0 ErrorMessage: $'''Excel se neotevřel'''
