@@ -1,0 +1,10 @@
+1. Procházejte složku paut_data
+2. Každý jeden soubor se pokuste otevřít v Excel
+3. Získejte první volný řádek a sloupec v daném souboru
+4. Do proměnné "hodnota" získejte hodnotu řádku 1 a sloupce 1
+5. Do proměnné "pocetListu" zjistěte počet listů v souboru
+6. Excel bez uložení zavřete
+
+7. Vytvořte chybu bloku, ve které budou kroky 2-6. Pokud některý z kroků 2-6 selže, přesměřujte uživatele na konec bloku
+
+8. Do proměnné datumCas získejte aktuální datum a čas
